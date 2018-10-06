@@ -1,0 +1,12 @@
+version: '2'
+
+tasks:
+  default:
+    cmds:
+    - go build -o lib.wasm wasm/main.go
+    env:
+      GOARCH: wasm
+      GOOS: js
+  run:
+    cmds:
+      - go run server.go

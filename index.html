@@ -1,0 +1,428 @@
+<!doctype html>
+<!--
+Copyright 2018 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Unidoc wasm</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
+          type="text/css">
+    <link type="text/css" href="https://unidoc.io/static/dist/all.min.css" rel="stylesheet"/>
+</head>
+
+<body id="app">
+<header>
+    <div class="row">
+        <div class="col s12">
+            <nav class="uni-nav-header">
+                <div class="nav-wrapper">
+                    <a href="/" class="brand-logo"><img src="https://unidoc.io/static/assets/unidoc-logo2x.png"
+                                                        alt="Unidoc" class="retina-ready-smaller"></a>
+                    <a href="#" data-activates="mobile-nav" class="button-collapse"><i class="fa fa-bars"></i></a>
+                    <ul id="nav-main" class="right hide-on-small-and-down">
+                        <li><a href="https://unidoc.io/">Home</a></li>
+                        <li><a href="https://unidoc.io/examples/getting_started/">Getting Started</a></li>
+                        <li class="active" %}=""><a href="https://unidoc.io/">Pdf optimization</a></li>
+                        <li><a href="https://unidoc.io/pricing/">License</a></li>
+                        <li><a href="https://unidoc.io/news/">News</a></li>
+                        <li><a href="https://unidoc.io/contact/">Contact</a></li>
+                    </ul>
+                    <ul class="side-nav" id="mobile-nav">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="https://unidoc.io/examples/getting_started/">Getting Started</a></li>
+                        <li class="active" %}=""><a href="https://unidoc.io/">Pdf optimization</a></li>
+                        <li><a href="https://unidoc.io/pricing/">Price</a></li>
+                        <li><a href="https://unidoc.io/news/">News</a></li>
+                        <li><a href="https://unidoc.io/contact/">Contact</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <a href="https://github.com/unidoc/unidoc"><img style="position: absolute; top: 0; right: 0; border: 0;"
+                                                    src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67"
+                                                    alt="Fork me on GitHub"
+                                                    data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
+
+    <div class="row uni-header uni-header-inner">
+        <div class="container">
+            <div class="row valign-wrapper">
+                <div class="col s12">
+                    <h3>Pdf optimization</h3>
+                    <p>Optimize Pdf directly in your browser.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<style type="text/css">
+    .inputDnD .form-control-file {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 6em;
+        outline: none;
+        visibility: hidden;
+        cursor: pointer;
+        background-color: #c61c23;
+        box-shadow: 0 0 5px solid currentColor;
+    }
+
+    .inputDnD .form-control-file:before {
+        content: attr(data-title);
+        position: absolute;
+        top: 0.5em;
+        left: 0;
+        width: 100%;
+        min-height: 6em;
+        line-height: 2em;
+        padding-top: 1.5em;
+        opacity: 1;
+        visibility: visible;
+        text-align: center;
+        border: 0.15em dashed currentColor;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        overflow: hidden;
+    }
+
+    .inputDnD .form-control-file:hover:before {
+        border-style: solid;
+        box-shadow: inset 0px 0px 0px 0.2em currentColor;
+    }
+</style>
+
+<main class="main-inner">
+    <div class="container">
+        <div class="row">
+            <div class="col l12 m12 s12">
+                <div id="browser-edge-error" class="alert alert-danger" role="alert" hidden>
+                    Go does not support EDGE browser yet. For more information see <a
+                        href="https://github.com/golang/go/issues/27295">the issue</a>.<br>
+                    <a href="https://caniuse.com/#feat=wasm">Try other browser with WebAssembly support.</a>
+                </div>
+                <div id="browser-wasm-error" class="alert alert-danger" role="alert" hidden>
+                    Your browser does not support WebAssembly yet. <a href="https://caniuse.com/#feat=wasm">See
+                    compatible browsers.</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col l12 m12 s12">
+                <div class="section">
+                    <div id="vueapp" hidden>
+                        <div style="min-height: 50px; margin-bottom: 15px">
+                            <div class="alert" :class="messageType" role="alert" v-show="showMessage">
+                            {{ message }}
+                            </div>
+                        </div>
+
+                        <div class="row m-b-1" v-show="initialized">
+                            <div class="col-sm-6 offset-sm-3">
+                                <button type="button" class="btn btn-info btn-block"
+                                        onclick="document.getElementById('inputFile').click()">Select a Pdf file
+                                </button>
+                                <div class="form-group inputDnD">
+                                    <label class="sr-only" for="inputFile">File Upload</label>
+                                    <input type="file" class="form-control-file text-info font-weight-bold"
+                                           id="inputFile" accept="application/pdf" @change="handleFileSelect"
+                                           data-title="Drag and drop a Pdf file">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" v-if="!!selectedFile">
+                            <div class="card-body">
+                                <h5 class="card-title">File information</h5>
+                                <p class="card-text">
+                                    Selected file: {{selectedFile.name}} <i class="fa fa-file-pdf-o"></i><br>
+                                    Size: {{selectedFileSize}} kB
+                                </p>
+                            </div>
+                        </div>
+
+
+                        <div v-show="initialized">
+                            <h5>Pdf optimization options</h5>
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="CombineDuplicateDirectObjects"
+                                       v-model="combineDuplicateDirectObjects">
+                                <label class="form-check-label" for="CombineDuplicateDirectObjects">Combine duplicate
+                                    direct objects</label>
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="CombineDuplicateStreams"
+                                       v-model="combineDuplicateStreams">
+                                <label class="form-check-label"
+                                       for="CombineDuplicateStreams">Combine duplicate streams</label>
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="CombineIdenticalIndirectObjects"
+                                       v-model="combineIdenticalIndirectObjects">
+                                <label class="form-check-label" for="CombineIdenticalIndirectObjects">Combine identical
+                                    indirect objects</label>
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="UseObjectStreams"
+                                       v-model="useObjectStreams">
+                                <label class="form-check-label" for="UseObjectStreams">Use object streams</label>
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="CompressStreams"
+                                       v-model="compressStreams">
+                                <label class="form-check-label" for="CompressStreams">Compress streams</label>
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="ImageQuality"
+                                       v-model="useImageQuality">
+                                <label class="form-check-label" for="ImageQuality">Use image quality
+                                    optimization</label>
+                            </div>
+                            <div class="form-group" v-show="useImageQuality">
+                                <label for="ImageQualityRange">Image quality {{imageQuality}}%</label>
+                                <input type="range" class="form-control-range" id="ImageQualityRange" min="20"
+                                       max="100" v-model="imageQuality">
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="ImageUpperPPI"
+                                       v-model="useImageUpperPPI">
+                                <label class="form-check-label" for="ImageUpperPPI">Use image upper PPI
+                                    optimization</label>
+                            </div>
+                            <div class="form-group" v-show="useImageUpperPPI">
+                                <label for="ImageUpperPPIRange">Image upper PPI {{imageUpperPPI}}</label>
+                                <input type="range" class="form-control-range" id="ImageUpperPPIRange" min="10"
+                                       max="900" v-model="imageUpperPPI">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" @click="optimizePdf"
+                                    :disabled="!selectedFile || !selectedFileData || optimizationIsRunning">Optimize
+                            </button>
+                        </div>
+
+                        <div class="card" v-if="!!selectedFile && !!optimizedFileUrl">
+                            <div class="card-body">
+                                <h5 class="card-title">Optimized file information</h5>
+                                <p class="card-text">
+                                    Original size: {{selectedFileSize}} kB <br>
+                                    Optimized size: {{optimizedFileSize}} kB <br>
+                                    Compression level: {{compressionLevel}} % <br>
+                                    <a :href="optimizedFileUrl" target="_blank">download optimized Pdf</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    // browser-edge-error
+    // browser-wasm-error
+    function supportedWasm() {
+        try {
+            if (typeof WebAssembly === "object"
+                    && typeof WebAssembly.instantiate === "function") {
+                const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00))
+                if (module instanceof WebAssembly.Module)
+                    return new WebAssembly.Instance(module) instanceof WebAssembly.Instance
+            }
+        } catch (e) {
+        }
+        return false
+    }
+
+    let hasError = false
+
+    if (!supportedWasm()) {
+        hasError = true
+        document.getElementById("browser-wasm-error").removeAttribute('hidden')
+    }
+    if (navigator.userAgent.indexOf('Edge') >= 0) {
+        hasError = true
+        document.getElementById("browser-edge-error").removeAttribute('hidden')
+    }
+
+    if (!hasError) {
+        document.write('<script src="wasm_exec.js"></' + 'script>')
+        document.getElementById("vueapp").removeAttribute('hidden')
+    }
+</script>
+
+
+<script>
+    if (supportedWasm() && !WebAssembly.instantiateStreaming) { // polyfill
+        WebAssembly.instantiateStreaming = async (resp, importObject) => {
+            const source = await (await resp).arrayBuffer()
+            return await WebAssembly.instantiate(source, importObject)
+        }
+    }
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+<script>
+    const go = new Go()
+    let mod, inst
+
+    async function initAndLoad() {
+        await WebAssembly.instantiateStreaming(fetch("lib.wasm"), go.importObject).then((result) => {
+            mod = result.module
+            inst = result.instance
+        })
+        go.run(inst)
+        return
+    }
+
+    const app = new Vue({
+        el: '#vueapp',
+        data() {
+            return {
+                message: 'Initializing...',
+                messageType: 'alert-primary',
+                showMessage: true,
+                initialized: false,
+                combineDuplicateDirectObjects: true,
+                combineDuplicateStreams: true,
+                combineIdenticalIndirectObjects: true,
+                useObjectStreams: true,
+                compressStreams: true,
+                useImageQuality: true,
+                imageQuality: 75,
+                useImageUpperPPI: true,
+                imageUpperPPI: 72,
+                timeoutID: 0,
+                timeoutReject: function () {
+                },
+                selectedFile: undefined,
+                selectedFileSize: 0, // in kB,
+                selectedFileData: undefined,
+                optimizationIsRunning: false,
+                optimizedFileUrl: undefined,
+                optimizedFileSize: 0, // in kB,
+                compressionLevel: 0 // %
+            }
+        },
+        mounted() {
+            this.loadWAsm()
+        },
+        methods: {
+            async setMessage(msg, status, timeout) {
+                this.message = msg
+                status = status == 'error' ? 'danger' : status
+                this.messageType = 'alert-' + status
+                this.showMessage = true
+                const self = this
+                if (this.timeoutID) {
+                    clearTimeout(this.timeoutID)
+                    this.timeoutReject()
+                }
+                if (timeout) {
+                    await new Promise(function (resolve, reject) {
+                        self.timeoutReject = reject
+                        self.timeoutID = setTimeout(resolve, timeout)
+                    })
+                    this.timeoutID = 0
+                    this.showMessage = false
+                }
+            },
+            async loadWAsm() {
+                console.log('......')
+                this.setMessage('Initializing...', 'info')
+                try {
+                    await initAndLoad()
+                    this.setMessage('Initialized', 'success', 2000)
+                    this.initialized = true
+                } catch (e) {
+                    this.setMessage('Initialization error: ' + e, 'error')
+                }
+            },
+            async optimizePdf() {
+                this.optimizedFileUrl = undefined
+                this.optimizationIsRunning = true
+                const params = {
+                    data: this.selectedFileData,
+                    CombineDuplicateDirectObjects: this.combineDuplicateDirectObjects,
+                    CombineDuplicateStreams: this.combineDuplicateStreams,
+                    CombineIdenticalIndirectObjects: this.combineIdenticalIndirectObjects,
+                    UseObjectStreams: this.useObjectStreams,
+                    CompressStreams: this.compressStreams,
+                    ImageQuality: this.useImageQuality ? this.imageQuality : 0,
+                    ImageUpperPPI: this.useImageUpperPPI ? this.imageUpperPPI : 0
+                }
+                this.setMessage('Optimization started', 'info')
+                try {
+                    const result = await new Promise(function (resolve, reject) {
+                        OptimizePDFCall(params, function (obj) {
+                            if (obj.error) {
+                                reject(obj.error)
+                            } else {
+                                resolve(obj.result)
+                            }
+                        })
+                    })
+
+                    const blob = new Blob([result], {'type': 'application/pdf'})
+                    const url = URL.createObjectURL(blob)
+                    this.optimizedFileUrl = url
+                    this.optimizedFileSize = Math.trunc(result.length / 1024)
+                    this.compressionLevel = Math.trunc(100.0 * (this.selectedFile.size - result.length) / this.selectedFile.size)
+                    this.setMessage('optimization finished successfully', 'success', 2000)
+
+                } catch (e) {
+                    this.setMessage('Optimization error: ' + e, 'error')
+                } finally {
+                    this.optimizationIsRunning = false
+                }
+            },
+            async handleFileSelect(evt) {
+                this.optimizedFileUrl = undefined
+                this.selectedFileData = undefined
+                const selectedFile = evt.target.files[0]
+                this.selectedFile = selectedFile
+                this.selectedFileSize = Math.trunc(this.selectedFile.size / 1024)
+                this.setMessage('File selected: ' + this.selectedFile.name, 'info', 2000)
+
+                const readerPromise = new Promise(function (resolve, reject) {
+                    const reader = new FileReader()
+                    reader.onerror = reject
+                    reader.onloadend = resolve
+                    reader.readAsArrayBuffer(selectedFile)
+                })
+
+                try {
+                    const readerEvent = await readerPromise
+                    this.setMessage('File read successful: ' + this.selectedFile.name, 'success', 2000)
+                    this.selectedFileData = new Uint8Array(readerEvent.target.result)
+                    console.log(readerEvent)
+                } catch (e) {
+                    this.setMessage('Read file error: ' + e, 'error')
+                }
+            }
+        }
+    })
+
+    //initAndLoad()
+
+    async function run() {
+        console.clear()
+        await go.run(inst)
+        inst = await WebAssembly.instantiate(mod, go.importObject) // reset instance
+        console.log(inst)
+    }
+</script>
+
+</body>
+
+</html>
